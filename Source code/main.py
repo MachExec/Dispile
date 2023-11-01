@@ -15,27 +15,26 @@ class dispile:
 
         #headers and other useful constant variables
         self.headers:dict = {"authorization": self.token} 
-        self.start_time:float = time.time()
 
 
-
-
-    def get_message(self)->dict:
+    def get_message(self,start_time:float)->dict:
         
         message_content = requests.get(self.get_link,headers=self.headers)#get request
         json_content:list = message_content.json()#converts get request into json
         isolate_message:dict = {}#stores useful information from json into dict
 
+        date_format:str = "%Y-%m-%dT%H:%M:%S.%f%z" #formatted discord date
+
         for index,item in enumerate(json_content): #iterates through json 
 
             time:str = item.get("timestamp") #gets time message was sent
-            date_format:str = "%Y-%m-%dT%H:%M:%S.%f%z" #formatted discord date
-            send_time:int = datetime.strptime(time,date_format).timestamp()
+            send_time:int = datetime.strptime(time,date_format).timestamp() #formats timestamp
 
-            if send_time > self.start_time:
-
+            if send_time > start_time:
+                
+                message_id:str = item.get("id") #grabs message ID
                 message:str = item.get("content") #gets message content
-                isolate_message[message] = send_time
+                isolate_message[message_id] = (message)
             
 
         return isolate_message
@@ -45,7 +44,9 @@ class dispile:
     def compile(self)->str:
         
         while(True):
-            msg_sent = self.get_message()
+            start_time:float = time.time()
+            msg_sent = self.get_message(start_time=start_time)
+            print(msg_sent)
             
         #function is not finished. For now, just requests a post message.
         #data = {"content": "Hello"}
@@ -54,10 +55,7 @@ class dispile:
 
 
 
-test_instance = dispile(channel="1167715294047899648",token="")
+test_instance = dispile(channel="",token="")
 
-while True:
-    dict_ = test_instance.get_message()
-    print(dict_)
-
+test_instance.compile()
 
